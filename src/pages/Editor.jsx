@@ -1,25 +1,62 @@
-import { useNavigate } from 'react-router-dom'
-import { ArrowLeft } from 'lucide-react'
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useEntries } from "../contexts/EntriesContext";
+import EditorHeader from "../components/Editor/EditorHeader";
+import TitleInput from "../components/Editor/TitleInput";
+import DatePicker from "../components/Editor/DatePicker";
+import ContentEditor from "../components/Editor/ContentEditor";
 
 export default function Editor() {
-  const navigate = useNavigate()
+    const navigate = useNavigate()
+    const { createEntry } = useEntries()
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        <button
-          onClick={() => navigate('/journal')}
-          className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6"
-        >
-          <ArrowLeft size={20} />
-          Back to Journal
-        </button>
+    const [title, setTitle] = useState('') 
+    const [content, setContent] = useState('')
+    const [date, setDate] = useState(new Date().toISOString().split('T')[0])
+    const [isSaving, setIsSaving] = useState(false)
 
-        <div className="bg-white rounded-xl shadow-md p-8">
-          <h1 className="text-3xl font-bold mb-6">New Entry</h1>
-          <p className="text-gray-500">Entry editor will be built next...</p>
+    const hasChanges = title.trim() !== '' || content.trim() !== ''
+
+    const handleSave = async () => {
+        if (!title.trim() || !content.trim()) {
+            alert('Please fill in both title and content')
+            return
+        }
+
+        try {
+            setIsSaving(true)
+            await createEntry({
+                title: title.trim(),
+                content: content.trim(),
+                created_at: new Date(date).toISOString(),
+                updated_at: new Date().toISOString(),
+            })
+            alert('Entry Saved Successfully!')
+            navigate('/journal')
+        } catch (error) {
+            console.error('Error saving entry:', error)
+            alert('Failed to save entry. Please try again.')
+        } finally {
+            setIsSaving(false)
+        }
+    }
+
+    return (
+        <div className="min-h-screen bg-gray-50">
+            <EditorHeader
+              onSave={handleSave}
+              onCancel={() => navigate('/journal')}
+              isSaving={isSaving}
+              hasChanges={hasChanges}
+            />
+
+            <main className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
+                <div className="bg-white rounded-xl shadow-md p-8">
+                    <TitleInput value={title} onChange={setTitle} />
+                    <DatePicker value={date} onChange={setDate} />
+                    <ContentEditor value={content} onChange={setContent} />
+                </div>
+            </main>
         </div>
-      </div>
-    </div>
-  )
+    )
 }
