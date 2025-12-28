@@ -88,7 +88,7 @@ export default function Journal() {
         className="fixed bottom-8 right-8 w-16 h-16 bg-orange-600 text-white rounded-full shadow-2xl hover:bg-orange-700 hover:scale-110 active:scale-95 transition-all flex items-center justify-center group"
         aria-label="New Entry"
       >
-        <PenLine size={28} />
+        <PenLine size={24} />
       </button>
 
       {/* Auth Modal for Guest Users */}
