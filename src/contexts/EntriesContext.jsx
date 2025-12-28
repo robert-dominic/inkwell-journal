@@ -28,7 +28,7 @@ export const EntriesProvider = ({ children }) => {
       setEntries(guestEntries)
       setLoading(false)
     }
-  }, [user])
+  }, [user, guestEntries])
 
   // Fetch entries from Supabase (for authenticated users)
   const fetchEntries = async () => {
