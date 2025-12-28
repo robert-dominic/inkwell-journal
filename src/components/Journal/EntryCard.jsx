@@ -34,7 +34,7 @@ export default function EntryCard({ entry, onClick, onEdit, onDelete }) {
       <div className="absolute top-4 right-4 flex flex-column items-center gap-2 transition-opacity">
         <button
           onClick={handleEdit}
-          className="p-2 bg-gray-100 text-gray-500 rounded-lg hover:bg-gray-200 transition-colors"
+          className="p-2 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors"
           aria-label="Edit entry"
         >
           <Edit2 size={16} />
