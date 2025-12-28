@@ -13,7 +13,7 @@ function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/journal" element={<Journal />} />
-            <Route path="/editor" element={<Editor />} />
+            <Route path="/editor/:id" element={<Editor />} />
           </Routes>
         </Router>
       </EntriesProvider>
