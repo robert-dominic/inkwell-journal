@@ -32,7 +32,7 @@ export default function Editor() {
             navigate('/journal')
           }
         }
-    }, [id])
+    }, [id, getEntry, navigate])
 
     const hasChanges = title.trim() !== '' || content.trim() !== ''
 
