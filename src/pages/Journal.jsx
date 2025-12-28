@@ -1,28 +1,40 @@
-"use client"
-
 import { useState } from "react"
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import { useEntries } from "../contexts/EntriesContext"
+import { useEntries } from '../contexts/EntriesContext'
 import AuthModal from "../components/Auth/AuthModal"
 import JournalHeader from '../components/Layout/JournalHeader'
-import EntryList from "../components/Journal/EntryList"
+import EntryList from '../components/Journal/EntryList'
 import { PenLine } from 'lucide-react'
 
 export default function Journal() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
   const navigate = useNavigate()
   const { user } = useAuth()
-  const { entries, loading } = useEntries()
-
+  const { entries, loading, deleteEntry } = useEntries()
 
   const handleAuthSuccess = () => {
     setIsAuthModalOpen(false)
   }
 
   const handleEntryClick = (entry) => {
-    // TODO: I'll navigate to the entry detail page 
-    console.log('Entry clicked:', entry)
+    navigate(`/entry/${entry.id}`)
+  }
+
+  const handleEdit = (entry) => {
+    navigate(`/editor/${entry.id}`)
+  }
+
+  const handleDelete = async (entry) => {
+    // Simple confirm for now (we'll make a modal tomorrow)
+    const confirmDelete = window.confirm(`Delete "${entry.title}"?`)
+    if (!confirmDelete) return
+
+    try {
+      await deleteEntry(entry.id)
+    } catch (error) {
+      alert('Failed to delete entry')
+    }
   }
 
   return (
@@ -35,9 +47,8 @@ export default function Journal() {
           <h2 className="text-3xl font-bold text-gray-900">My Journal</h2>
           <p className="text-gray-600 mt-1">
             {user 
-              ? 'Your thoughts, beautifully organized'
-              : 'Writing in guest mode - sign up to save permanently'
-            }
+              ? 'Your thoughts, beautifully organized' 
+              : 'Writing in guest mode - sign up to save permanently'}
           </p>
         </div>
 
@@ -58,11 +69,16 @@ export default function Journal() {
 
         {/* Entries List */}
         {loading ? (
-            <div className="text-center py-12">
-                <p className="text-gray-500">Loading entries...</p>
-            </div>
+          <div className="text-center py-12">
+            <p className="text-gray-500">Loading entries...</p>
+          </div>
         ) : (
-            <EntryList entries={entries} onEntryClick={handleEntryClick} />
+          <EntryList 
+            entries={entries} 
+            onEntryClick={handleEntryClick}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+          />
         )}
       </main>
 
@@ -75,11 +91,11 @@ export default function Journal() {
         <PenLine size={28} />
       </button>
 
-        {/* Auth Modal for Guest Users */}
+      {/* Auth Modal for Guest Users */}
       {!user && (
         <AuthModal 
           isOpen={isAuthModalOpen} 
-          onClose={() => setIsAuthModalOpen(false)} 
+          onClose={() => setIsAuthModalOpen(false)}
           onSuccess={handleAuthSuccess}
         />
       )}
