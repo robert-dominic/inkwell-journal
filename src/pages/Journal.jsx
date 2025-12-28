@@ -33,6 +33,7 @@ export default function Journal() {
     try {
       await deleteEntry(entry.id)
     } catch (error) {
+      console.error('Failed to delete entry:', error)
       alert('Failed to delete entry')
     }
   }
