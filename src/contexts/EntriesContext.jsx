@@ -81,10 +81,77 @@ export const EntriesProvider = ({ children }) => {
     }
   }
 
+  // Update existing entry
+  const updateEntry = async (id, entryData) => {
+    try {
+      if (user) {
+        // Update in Supabase
+        const { data, error } = await supabase
+          .from('entries')
+          .update({ ...entryData, updated_at: new Date().toISOString() })
+          .eq('id', id)
+          .select()
+          .single()
+
+        if (error) throw error
+        setEntries(entries.map(entry => entry.id === id ? data : entry))
+        return data
+      } else {
+        // Update in localStorage
+        const updatedEntry = {
+          ...guestEntries.find(e => e.id === id),
+          ...entryData,
+          updated_at: new Date().toISOString(),
+        }
+        const updatedEntries = guestEntries.map(entry => 
+          entry.id === id ? updatedEntry : entry
+        )
+        setGuestEntries(updatedEntries)
+        setEntries(updatedEntries)
+        return updatedEntry
+      }
+    } catch (error) {
+      console.error('Error updating entry:', error)
+      throw error
+    }
+  }
+
+  // Delete entry
+  const deleteEntry = async (id) => {
+    try {
+      if (user) {
+        // Delete from Supabase
+        const { error } = await supabase
+          .from('entries')
+          .delete()
+          .eq('id', id)
+
+        if (error) throw error
+        setEntries(entries.filter(entry => entry.id !== id))
+      } else {
+        // Delete from localStorage
+        const updatedEntries = guestEntries.filter(entry => entry.id !== id)
+        setGuestEntries(updatedEntries)
+        setEntries(updatedEntries)
+      }
+    } catch (error) {
+      console.error('Error deleting entry:', error)
+      throw error
+    }
+  }
+
+  // Get single entry by ID
+  const getEntry = (id) => {
+    return entries.find(entry => entry.id === id)
+  }
+
   const value = {
     entries,
     loading,
     createEntry,
+    updateEntry,
+    deleteEntry,
+    getEntry,
     refetch: fetchEntries,
   }
 
