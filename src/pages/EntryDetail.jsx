@@ -6,18 +6,21 @@ import { ArrowLeft, Edit2, Trash2, Calendar } from 'lucide-react'
 export default function EntryDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { getEntry, deleteEntry } = useEntries()
+  const { entries, deleteEntry, loading } = useEntries() // Use entries directly
   const [entry, setEntry] = useState(null)
 
   useEffect(() => {
-    const foundEntry = getEntry(id)
+    // Wait for entries to load before checking
+    if (loading) return
+
+    const foundEntry = entries.find(e => e.id === id)
     if (foundEntry) {
       setEntry(foundEntry)
     } else {
       alert('Entry not found')
       navigate('/journal')
     }
-  }, [id, getEntry, navigate])
+  }, [id, loading, entries]) // Add entries to dependencies
 
   const formatDate = (dateString) => {
     const date = new Date(dateString)
@@ -46,7 +49,8 @@ export default function EntryDetail() {
     }
   }
 
-  if (!entry) {
+  // Show loading while entries are loading or entry hasn't been found yet 
+  if (loading || !entry) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <p className="text-gray-500">Loading...</p>
