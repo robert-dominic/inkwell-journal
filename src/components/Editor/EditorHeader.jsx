@@ -22,7 +22,8 @@ export default function EditorHeader({ onSave, onCancel, isSaving, hasChanges}) 
                       className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
                     >
                       <ArrowLeft size={20} />
-                      <span className="sm:inline">Back to Journal</span>
+                      <span className="sm:inline">Back</span>
+                      
                     </button>
 
                     {/* Action Buttons */}
