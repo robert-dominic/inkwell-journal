@@ -1,11 +1,10 @@
-import { createContext, useContext, useState, useEffect, useCallback } from 'react'
+import { createContext, useContext, useState, useEffect } from 'react'
 import { useAuth } from './AuthContext'
 import { supabase } from '../lib/supabase'
 import { useLocalStorage } from '../hooks/useLocalStorage'
 
 const EntriesContext = createContext({})
 
-// eslint-disable-next-line react-refresh/only-export-components
 export const useEntries = () => {
   const context = useContext(EntriesContext)
   if (!context) {
@@ -19,9 +18,24 @@ export const EntriesProvider = ({ children }) => {
   const [entries, setEntries] = useState([])
   const [loading, setLoading] = useState(true)
   const [guestEntries, setGuestEntries] = useLocalStorage('guest_entries', [])
+  const [initialized, setInitialized] = useState(false)
+
+  // Fetch entries when user logs in
+  useEffect(() => {
+    if ( authLoading || initialized ) return;
+
+    if (user) {
+      fetchEntries()
+    } else {
+      setEntries(guestEntries)
+      setLoading(false)
+    }
+    
+    setInitialized(true)
+  }, [user, authLoading])
 
   // Fetch entries from Supabase (for authenticated users)
-  const fetchEntries = useCallback(async () => {
+  const fetchEntries = async () => {
     try {
       setLoading(true)
       const { data, error } = await supabase
@@ -36,64 +50,7 @@ export const EntriesProvider = ({ children }) => {
     } finally {
       setLoading(false)
     }
-  }, [])
-
-  // Migrate guest entries to Supabase when user signs up/in
-  const migrateGuestEntries = useCallback(async () => {
-    if (!user || guestEntries.length === 0) {
-      return { migrated: 0 }
-    }
-  
-    try {
-      // Prepare entries for Supabase (add user_id)
-      const entriesToMigrate = guestEntries.map(entry => ({
-        title: entry.title,
-        content: entry.content,
-        created_at: entry.created_at,
-        updated_at: entry.updated_at,
-        user_id: user.id,
-      }))
-
-      // Insert all guest entries into Supabase
-      const { data, error } = await supabase
-        .from('entries')
-        .insert(entriesToMigrate)
-        .select()
-
-      if (error) {
-        throw error
-      }
-  
-      // Clear guest entries from localStorage
-      setGuestEntries([])
-      localStorage.removeItem('guest_entries')
-    
-      // Refresh entries from Supabase
-      await fetchEntries()
-
-      return { migrated: data.length }
-    } catch (error) {
-      console.error('Error migrating guest entries:', error)
-      throw error
-    }
-  }, [user, guestEntries, setGuestEntries, fetchEntries])
-
-  // Fetch entries when user logs in
-  useEffect(() => {
-    if (authLoading) return
-
-    if (user) {
-      if (guestEntries.length > 0) {
-        migrateGuestEntries().catch(console.error)
-      } else {
-        fetchEntries()
-      }
-    } else {
-      // Load guest entries from localStorage
-      setEntries(guestEntries)
-      setLoading(false)
-    }
-  }, [user, authLoading, guestEntries, migrateGuestEntries, fetchEntries])
+  }
 
   // Create new entry
   const createEntry = async (entryData) => {
@@ -187,9 +144,49 @@ export const EntriesProvider = ({ children }) => {
     }
   }
 
-  // Get single entry by ID
-  const getEntry = (id) => {
-    return entries.find(entry => entry.id === id)
+  // Migrate guest entries to Supabase when user signs up/in
+  const migrateGuestEntries = async () => {
+    if (!user) {
+      return { migrated: 0 }
+    }
+    
+    if (guestEntries.length === 0) {
+      return { migrated: 0 }
+    }
+
+    try {
+      // Prepare entries for Supabase (add user_id, remove string ID)
+      const entriesToMigrate = guestEntries.map(entry => ({
+        title: entry.title,
+        content: entry.content,
+        created_at: entry.created_at,
+        updated_at: entry.updated_at,
+        user_id: user.id,
+      }))
+
+      // Insert all guest entries into Supabase
+      const { data, error } = await supabase
+        .from('entries')
+        .insert(entriesToMigrate)
+        .select()
+
+      if (error) {
+        console.error('Supabase error:', error)
+        throw error
+      }
+
+      // Clear guest entries from localStorage
+      setGuestEntries([])
+      localStorage.removeItem('guest_entries')
+      
+      // Refresh entries from Supabase
+      await fetchEntries()
+
+      return { migrated: data.length }
+    } catch (error) {
+      console.error('Error migrating guest entries:', error)
+      throw error
+    }
   }
 
   const value = {
@@ -198,9 +195,8 @@ export const EntriesProvider = ({ children }) => {
     createEntry,
     updateEntry,
     deleteEntry,
-    getEntry,
-    refetch: fetchEntries,
     migrateGuestEntries,
+    refetch: fetchEntries,
   }
 
   return (
