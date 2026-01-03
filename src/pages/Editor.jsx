@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useEntries } from "../contexts/EntriesContext";
+import { useModal } from "../contexts/ModalContext";
 import EditorHeader from "../components/Editor/EditorHeader";
 import TitleInput from "../components/Editor/TitleInput";
 import DatePicker from "../components/Editor/DatePicker";
@@ -9,6 +10,7 @@ import ContentEditor from "../components/Editor/ContentEditor";
 export default function Editor() {
     const { id } = useParams()
     const navigate = useNavigate()
+    const { showInfo } = useModal()
     const { createEntry, updateEntry, entries, loading } = useEntries() // Use entries directly
 
     const [title, setTitle] = useState('') 
@@ -30,9 +32,12 @@ export default function Editor() {
             setDate(new Date(entry.created_at).toISOString().split('T')[0])
             setIsEditMode(true)
         } else {
-            // Entry not found after loading completed
-            alert('Entry not found')
-            navigate('/journal')
+            // show the InfoModal if entry not found after loading completed
+            showInfo({
+                title: 'Entry Not Found',
+                message: 'The entry you are looking for does not exist.',
+                onConfirm: () => navigate('/journal')
+            })
         }
       }
     }, [id, loading, entries, navigate]) // Add entries to dependencies
@@ -54,7 +59,11 @@ export default function Editor() {
                     content: content.trim(),
                     created_at: new Date(date).toISOString(),
                 })
-                alert('Entry updated successfully')
+                navigate('/journal')
+                showInfo({
+                    title: 'Entry Updated',
+                    message: 'Your changes have been successfully saved.',
+                })
             } else {
                 await createEntry({
                     title: title.trim(),
@@ -62,10 +71,12 @@ export default function Editor() {
                     created_at: new Date(date).toISOString(),
                     updated_at: new Date().toISOString(),
                 })
-                alert('Entry saved successfully!')
+                navigate('/journal')
+                showInfo({
+                    title: 'Entry Created',
+                    message: 'Your new journal entry has been successfully saved.',
+                })
             }
-
-            navigate('/journal')
         } catch (error) {
             console.error('Error saving entry:', error)
             alert('Failed to save entry. Please try again.')

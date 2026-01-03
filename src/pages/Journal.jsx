@@ -11,13 +11,13 @@ export default function Journal() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
   const [sortBy, setSortBy] = useState('newest')
   const navigate = useNavigate()
-  const { user } = useAuth()
-  const { entries, loading, deleteEntry } = useEntries()
+  const { user, profile } = useAuth()
+  const { entries, loading } = useEntries()
 
   // Sort entries based on selected filter
   const sortedEntries = useMemo(() => {
     const entriesCopy = [...entries]
-
+    
     switch (sortBy) {
       case 'newest':
         return entriesCopy.sort((a, b) => 
@@ -28,7 +28,7 @@ export default function Journal() {
           new Date(a.created_at) - new Date(b.created_at)
         )
       case 'a-z':
-        return entriesCopy.sort((a, b) =>
+        return entriesCopy.sort((a, b) => 
           a.title.toLowerCase().localeCompare(b.title.toLowerCase())
         )
       case 'z-a':
@@ -52,21 +52,9 @@ export default function Journal() {
     navigate(`/editor/${entry.id}`)
   }
 
-  const handleDelete = async (entry) => {
-    // Simple confirm for now (we'll make a modal tomorrow)
-    const confirmDelete = window.confirm(`Delete "${entry.title}"?`)
-    if (!confirmDelete) return
-
-    try {
-      await deleteEntry(entry.id)
-    } catch (error) {
-      console.error('Failed to delete entry:', error)
-      alert('Failed to delete entry')
-    }
-  }
-
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Header now displays username instead of email */}
       <JournalHeader onSignUp={() => setIsAuthModalOpen(true)} />
 
       {/* Main Content */}
@@ -95,30 +83,22 @@ export default function Journal() {
         )}
 
         {/* Filter Section */}
-        {entries.length > 0 && (
+        {entries.length > 0 && user && (
           <div className="mb-6 flex items-center justify-between">
-            <p className="text-gray-600 text-sm">
-              {user 
-               ? `${sortedEntries.length} ${
-                  sortedEntries.length === 1 ? 'entry' : 'entries'
-                 }`
-               : ''
-              }
+            <p className="text-sm text-gray-600">
+              {sortedEntries.length} {sortedEntries.length === 1 ? 'entry' : 'entries'}
             </p>
-
-            {/* Dropdown */}
+            
+            {/* Filter Dropdown */}
             <div className="flex items-center gap-2">
-              <SlidersHorizontal 
-                size={18}
-                className="text-gray-500"
-              />
-              <select 
+              <SlidersHorizontal size={18} className="text-gray-500" />
+              <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
                 className="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none bg-white cursor-pointer"
               >
-                <option value="newest">Newest</option>
-                <option value="oldest">Oldest</option>
+                <option value="newest">Newest First</option>
+                <option value="oldest">Oldest First</option>
                 <option value="a-z">A-Z</option>
                 <option value="z-a">Z-A</option>
               </select>
@@ -126,17 +106,22 @@ export default function Journal() {
           </div>
         )}
 
-        {/* Entries List */}
+        {/* Entries List / Empty State */}
         {loading ? (
           <div className="text-center py-12">
             <p className="text-gray-500">Loading entries...</p>
           </div>
+        ) : entries.length === 0 && user ? (
+          <div className="text-center py-12">
+            <p className="text-gray-500">
+              No entries yet. Start journaling today!
+            </p>
+          </div>
         ) : (
           <EntryList 
-            entries={sortedEntries} 
+            entries={sortedEntries}
             onEntryClick={handleEntryClick}
             onEdit={handleEdit}
-            onDelete={handleDelete}
           />
         )}
       </main>

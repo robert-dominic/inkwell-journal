@@ -1,5 +1,3 @@
-"use client"
-
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { Zap, Cloud, Lock } from "lucide-react"
@@ -23,7 +21,7 @@ export default function Home() {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-32">
         <div className="text-center space-y-8">
           {/* Headline */}
-          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-gray-900 text-balance">
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 text-balance">
             Your thoughts, <span className="text-orange-500">beautifully organized</span>
           </h1>
 
@@ -37,7 +35,7 @@ export default function Home() {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
             <button
               onClick={() => navigate('/journal')}
-              className="w-full sm:w-auto px-8 py-4 bg-orange-500 hover:bg-orange-600 text-white text-lg font-semibold rounded-lg transition-colors active:scale-95 shadow-lg hover:shadow-xl"
+              className="w-full sm:w-auto px-6 py-4 bg-orange-500 hover:bg-orange-600 text-white text-lg font-semibold rounded-lg transition-colors active:scale-95 shadow-lg hover:shadow-xl"
             >
               Start Journaling
             </button>
