@@ -1,7 +1,8 @@
 {
-  "name": "journal-app-fullstack",
+  "name": "inkwell",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "description": "A modern personal journaling app",
   "type": "module",
   "scripts": {
     "dev": "vite",
