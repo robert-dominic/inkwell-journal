@@ -1,5 +1,3 @@
-"use client"
-
 import { useEffect } from "react"
 import { X } from "lucide-react"
 import AuthForm from "./AuthForm"
@@ -36,7 +34,12 @@ export default function AuthModal({ isOpen, onClose, onSuccess }) {
 
         {/* Content */}
         <div className="p-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">Welcome to MyJournal</h2>
+          <div className="flex gap-2 sm:justify-center pt-4">
+            <img src="/logo.svg" alt="Inkwell's logo" className="w-9 h-9"/>
+            <span className="text-[1.35rem] whitespace-nowrap font-bold text-gray-900 mb-8">
+              Welcome to Inkwell
+            </span>
+          </div>
           <AuthForm onSuccess={onSuccess} onClose={onClose} />
         </div>
       </div>

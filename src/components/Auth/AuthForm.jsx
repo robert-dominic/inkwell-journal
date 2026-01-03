@@ -1,16 +1,17 @@
-"use client"
-
 import { useState } from "react"
 import { useAuth } from '../../contexts/AuthContext'
+import { useEntries } from '../../contexts/EntriesContext'
 
 export default function AuthForm({ onSuccess }) {
   const [mode, setMode] = useState("signin")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [username, setUsername] = useState("")
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
 
   const { signIn, signUp } = useAuth()
+  const { migrateGuestEntries } = useEntries()
 
   const isSignIn = mode === "signin"
 
@@ -22,9 +23,19 @@ export default function AuthForm({ onSuccess }) {
     try {
       if (isSignIn) {
         await signIn(email, password)
+        
+        const result = await migrateGuestEntries()
+        
+        if (result.migrated > 0) {
+          alert(`Success! ${result.migrated} guest ${result.migrated === 1 ? 'entry' : 'entries'} synced to your account.`)
+        }
       } else {
-        await signUp(email, password)
-        alert('Check your email for the verification link!')
+        if (!username.trim()) {
+          setError("Username is required")
+          setLoading(false)
+          return
+        }
+        await signUp(email, password, username)
       }
       onSuccess()
     } catch (err) {
@@ -41,6 +52,24 @@ export default function AuthForm({ onSuccess }) {
   return (
     <div className="space-y-6">
       <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Username input*/}
+        {!isSignIn && (
+          <div>
+            <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
+              Username
+            </label>
+            <input
+              id="username"
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              required={!isSignIn}
+              className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all"
+              placeholder="johndoe"
+            />
+          </div>
+        )}
+
         {/* Email input */}
         <div>
           <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
@@ -52,8 +81,8 @@ export default function AuthForm({ onSuccess }) {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all"
-            placeholder="you@example.com"
+            className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all"
+            placeholder="johndoe@example.com"
           />
         </div>
 
@@ -68,7 +97,7 @@ export default function AuthForm({ onSuccess }) {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all"
+            className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all"
             placeholder="••••••••"
           />
         </div>
